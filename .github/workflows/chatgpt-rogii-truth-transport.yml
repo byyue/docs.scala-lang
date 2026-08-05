@@ -21,19 +21,36 @@ jobs:
           fetch-depth: 1
           persist-credentials: true
 
-      - name: Download, verify, and publish temporary base64 payload
+      - name: Download and verify temporary payload
         shell: bash
         env:
           SIGNED_URL: "https://github-cloud.githubusercontent.com/alambic/media/1178371487/ad/57/ad57b15342c9f55ab9375ee9e9cf5c57b189bbf7ca6c882be65dd6f037907fea?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA5BA2674WPWWEFGQ5%2F20260805%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260805T163901Z&X-Amz-Expires=3600&X-Amz-Signature=e15224b633d8ca5a9349ab69001e246122947db3c50c3c6bce8483f6a30135e4&X-Amz-SignedHeaders=host&actor_id=41898282&key_id=0&repo_id=1316866487&token=1"
           EXPECTED_SHA256: ad57b15342c9f55ab9375ee9e9cf5c57b189bbf7ca6c882be65dd6f037907fea
         run: |
           set -euo pipefail
-          curl --fail-with-body --silent --show-error --location "${SIGNED_URL}" -o /tmp/truth.xz
-          echo "${EXPECTED_SHA256}  /tmp/truth.xz" | sha256sum -c -
-          base64 -w 0 /tmp/truth.xz > chatgpt_rogii_truth_transport.b64
+          curl --fail-with-body --silent --show-error --location "${SIGNED_URL}" -o rogii_suffix_tvt_q1e3_dod.xz
+          echo "${EXPECTED_SHA256}  rogii_suffix_tvt_q1e3_dod.xz" | sha256sum -c -
+
+      - name: Upload temporary truth artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatgpt-rogii-truth-transport
+          path: rogii_suffix_tvt_q1e3_dod.xz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+      - name: Refresh public base64 fallback
+        shell: bash
+        env:
+          EXPECTED_SHA256: ad57b15342c9f55ab9375ee9e9cf5c57b189bbf7ca6c882be65dd6f037907fea
+        run: |
+          set -euo pipefail
+          base64 -w 4096 rogii_suffix_tvt_q1e3_dod.xz > chatgpt_rogii_truth_transport.b64
           printf '%s  %s\n' "${EXPECTED_SHA256}" 'rogii_suffix_tvt_q1e3_dod.xz' > chatgpt_rogii_truth_transport.sha256
           git config user.name 'chatgpt-transport-bot'
           git config user.email 'actions@users.noreply.github.com'
           git add chatgpt_rogii_truth_transport.b64 chatgpt_rogii_truth_transport.sha256
-          git commit -m 'Add temporary ROGII truth transport [skip ci]'
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Refresh temporary ROGII truth transport [skip ci]'
           git push origin HEAD:chatgpt-rogii-truth-transport-20260806
