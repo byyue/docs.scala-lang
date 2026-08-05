@@ -6,6 +6,11 @@ on:
       - chatgpt-rogii-truth-transport-20260806
     paths:
       - .github/workflows/chatgpt-rogii-truth-transport.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/chatgpt-rogii-truth-transport.yml
 
 permissions:
   contents: write
@@ -41,6 +46,7 @@ jobs:
           retention-days: 1
 
       - name: Refresh public base64 fallback
+        if: github.event_name == 'push'
         shell: bash
         env:
           EXPECTED_SHA256: ad57b15342c9f55ab9375ee9e9cf5c57b189bbf7ca6c882be65dd6f037907fea
