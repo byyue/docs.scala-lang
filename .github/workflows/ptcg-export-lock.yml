@@ -1,0 +1,18 @@
+name: ptcg-export-lock
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/ptcg-export-lock.yml]
+  workflow_dispatch:
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ptcg-v022-lock-seed
+          path: PTCG_TEMP_UV_LOCK
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 9
